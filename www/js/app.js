@@ -5,8 +5,14 @@ var clientKey = "YOUR_NCMB_CLIENT_KEY";
 // [NCMB] SDKの初期化
 var ncmb = new NCMB(applicationKey, clientKey);
 
-// ログイン中ユーザー
+// [NCMB] ログイン中ユーザー
 var currentLoginUser;
+
+// [NCMB] つぶやきデータ
+var tsubuyakiData;
+
+// [NCMB] ユーザーデータ
+var userData;
 
 
 /********** ID / PW 認証 **********/
@@ -33,6 +39,16 @@ function onIDRegisterBtn() {
                          console.log("【ID / PW 認証】ログインに成功しました");
                          // [NCMB] ログイン中のユーザー情報の取得
                          currentLoginUser = ncmb.User.getCurrentUser();
+                         var objectId = currentLoginUser.get("objectId");
+                         // [NCMB] 参照権限設定(user+adminRole)
+                         var acl = new ncmb.Acl();
+                         acl.setReadAccess(objectId, true)
+                            .setWriteAccess(objectId, true)
+                            .setRoleReadAccess("admin", true)
+                            .setRoleWriteAccess("admin", true);
+                         // [NCMB] 更新
+                         currentLoginUser.set("acl", acl)
+                                         .update();    
                          // フィールドを空に
                          $("#reg_username").val("");
                          $("#IDReg_password").val("");
@@ -41,8 +57,8 @@ function onIDRegisterBtn() {
                      })
                      .catch(function(error) {
                          /* 処理失敗 */
-                         console.log("【ID / PW 認証】ログインに失敗しました: " + error);
-                         alert("【ID / PW 認証】ログインに失敗しました: " + error);
+                         console.log("【ID / PW 認証】ログインまたは更新に失敗しました: " + error);
+                         alert("【ID / PW 認証】ログインまたは更新に失敗しました: " + error);
                          // フィールドを空に
                          $("#reg_username").val("");
                          $("#IDReg_password").val("");
@@ -118,16 +134,16 @@ function onSendTsubuyakiBtn() {
     var userName = currentLoginUser.get("userName");
     // つぶやきの取得
     var tsubuyakiText = $("#tsubuyakiText").val();
-    // 保存先クラス「Tsubuyaki」の作成
+    // [NCMB] 保存先クラス「Tsubuyaki」の作成
     var Tsubuyaki = ncmb.DataStore("Tsubuyaki");
-    // インスタンスの生成
+    // [NCMB] インスタンスの生成
     var tsubuyaki = new Tsubuyaki();
-    // 参照権限設定
+    // [NCMB] 参照権限設定(user+adminRole)
     var acl = new ncmb.Acl();
     acl.setPublicReadAccess(true)
        .setWriteAccess(objectId, true)
        .setRoleWriteAccess("admin", true);
-    // つぶやきを保存
+    // [NCMB] つぶやきを保存
     tsubuyaki.set("userName", userName)
              .set("tsubuyakiText", tsubuyakiText)
              .set("acl", acl)
@@ -161,7 +177,8 @@ function getTsubuyaki() {
            .then(function(results){
                // 取得成功時の処理
                console.log("取得成功");
-               makeList(results);
+               tsubuyakiData = results;
+               makeTsubuyakiList();
            })
            .catch(function(error){
                // 取得失敗時の処理
@@ -195,7 +212,7 @@ function onDeleteBtn() {
                  console.log("検索成功：取得件数" + count + "件");
                  // 削除実行
                  if (count == 0) {
-                     checkUserDelete(0, 0);
+                     deleteUser(0, 0, true);
                  } else {
                      for (var i = 0; i < count; i++) {
                          var dataObjectId = tsubuyakiData[i].get("objectId");
@@ -229,42 +246,81 @@ function deleteData(objectId, allnumber, number) {
              .then(function(result){
                  // つぶやき削除成功時の処理
                  console.log("つぶやき削除成功：" + result);
-                 checkUserDelete(allnumber, number);
+                 deleteUser(allnumber, number, true);
              })
              .catch(function(error){
                  // つぶやき削除失敗時の処理
                  console.log("つぶやき削除失敗：" + error);
                  alert("つぶやき削除失敗：" + error);
-                 checkUserDelete(allnumber, number);
+                 deleteUser(allnumber, number, false);
              });
 }
 
-function checkUserDelete(allnumber, number) {
+function deleteUser(allnumber, number, flag) {
     if(allnumber == number) {
-        // 会員の削除
-         currentLoginUser.delete()
-                        .then(function(result){
-                            // 会員削除成功時の処理
-                            console.log("会員削除成功：" + result);
-                            // loading の表示を終了
-                            $.mobile.loading('hide');
-                            // ログイン中のユーザー情報を空に
-                            currentLoginUser = null;
-                            // currentUserDataリストを空に
-                            $("#tsubuyakiList").empty();
-                            // 【ID / PW】ログインページへ移動
-                            $.mobile.changePage('#IDLoginPage');
-                        })
-                        .catch(function(error){
-                            // 会員削除失敗時の処理
-                            console.log("会員削除失敗：" + error);
-                            alert("会員削除失敗：" + error);
-                            // loading の表示を終了
-                            $.mobile.loading('hide');
-                        });
+        if (flag) {
+            // 会員の削除
+             currentLoginUser.delete()
+                            .then(function(result){
+                                // 会員削除成功時の処理
+                                console.log("会員削除成功：" + result);
+                                // loading の表示を終了
+                                $.mobile.loading('hide');
+                                // ログイン中のユーザー情報を空に
+                                currentLoginUser = null;
+                                // currentUserDataリストを空に
+                                $("#tsubuyakiList").empty();
+                                // 【ID / PW】ログインページへ移動
+                                $.mobile.changePage('#IDLoginPage');
+                            })
+                            .catch(function(error){
+                                // 会員削除失敗時の処理
+                                console.log("会員削除失敗：" + error);
+                                alert("会員削除失敗：" + error);
+                                // loading の表示を終了
+                                $.mobile.loading('hide');
+                            });
+        } else {
+            // retry
+            onDeleteBtn();
+        }
     }
-
 }
+
+// Navbar の設定
+function setNavbar() {
+    // 非表示
+    $('#navBtn1').hide();
+    // [NCMB] adminロール取得
+    ncmb.Role.equalTo("roleName", "admin")
+             .fetch()
+             .then(function(role){
+                 // adminロール取得成功時の処理
+                 console.log("adminロール取得成功");
+                 // [NCMB] adminロール内ユーザーの取得 
+                 return role.fetchUser();
+             })
+             .then(function(users){
+                 // adminロール内ユーザー取得成功時の処理
+                 console.log("adminロール内ユーザー取得成功");
+                 for (var i = 0; i < users.length; i++) {
+                     var user = users[i];
+                     if (user.userName == currentLoginUser.userName) {
+                         // adminユーザーの場合
+                         $('#navBtn1').show();
+                     }                    
+                 }
+             })
+             .catch(function(error){
+                 // adminロールまたはadminロール内ユーザー取得失敗時の処理
+                 console.log("adminロールまたはadminロール内ユーザー取得失敗：" + error);
+                 alert("adminロールまたはadminロール内ユーザー取得失敗：" + error);
+                 
+             });
+}
+
+/********** 管理者ページ **********/
+// 
 
 
 //---------------------------------------------------------------------------
@@ -287,25 +343,28 @@ $(document).on('mobileinit',function(){
     $.mobile.loader.prototype.options;
 });
 
+
 // tsubuyakiListPage ページが表示されるたびに実行される処理
 $(document).on('pageshow','#tsubuyakiListPage', function(e, d) {
     // つぶやきジリストの更新
     getTsubuyaki();
+    // Navbar の設定
+    setNavbar();
 });
 
 // つぶやき一覧表を作成する処理
-function makeList(results) {
+function makeTsubuyakiList() {
     // tsubuyakiList のDOM要素を削除
     $("#tsubuyakiList").empty();
     // 一覧作成
-    for (var i = 0; i < results.length; i++) {
-        var result = results[i];
-        console.log(i+1 + ":" + JSON.stringify(result));
+    for (var i = 0; i < tsubuyakiData.length; i++) {
+        var tsubuyaki = tsubuyakiData[i];
+        console.log(i+1 + ":" + JSON.stringify(tsubuyaki));
         
         // 値を取得
-        var author = result.get("userName");
-        var tsubuyakiText = result.get("tsubuyakiText");
-        var date = new Date(result.get("createDate"));
+        var author = tsubuyaki.get("userName");
+        var tsubuyakiText = tsubuyaki.get("tsubuyakiText");
+        var date = new Date(tsubuyaki.get("createDate"));
         var createDate = date.getFullYear() + "-"
                         + ((date.getMonth() < 10) ? "0" : "") + date.getMonth() + "-"
                         + ((date.getDate() < 10) ? "0" : "") + date.getDate() + " "
@@ -314,6 +373,7 @@ function makeList(results) {
                         + ((date.getSeconds() < 10) ? "0" : "") + date.getSeconds();
         // リストに追加
         $("#tsubuyakiList").append("<li class='ui-li ui-li-static ui-btn-up-c'><p class='ui-li-aside ui-li-desc'><strong>" + createDate + "</strong></p><h3 class='ui-li-heading'>" + author + "</h3><p class='ui-li-desc'><strong></strong></p><p class='ui-li-desc'>" + tsubuyakiText + "</p></li>");
+
     }
     
     // loading の表示を終了
@@ -321,15 +381,58 @@ function makeList(results) {
     
 }
 
+function onTsubuyKiDelete() {
+    
+}
+
+// tsubuyakiDeletePage ページが表示されるたびに実行される処理
+$(document).on('pageshow','#tsubuyakiDeletePage', function(e, d) {
+    // リストの更新
+    makeTsubuyakiDeleteList();
+    
+});
 
 
-// <li class="ui-li ui-li-static ui-btn-up-c ui-first-child">
-//                         <p class="ui-li-aside ui-li-desc">
-//                         <strong>6:24</strong>PM
-//                         </p>
-//                         <h3 class="ui-li-heading">Stephen Weber</h3>
-//                         <p class="ui-li-desc">
-//                         <strong>You've been invited to a meeting at Filament Group in Boston, MA</strong>
-//                         </p>
-//                         <p class="ui-li-desc">Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
-//                         </li>
+// つぶやき一覧表を作成する処理
+function makeTsubuyakiDeleteList() {
+    // tsubuyakiList_delete のDOM要素を削除
+    $("#tsubuyakiList_delete").empty();
+    // 一覧作成
+    for (var i = 0; i < tsubuyakiData.length; i++) {
+        var tsubuyaki = tsubuyakiData[i];
+        console.log(i+1 + ":" + JSON.stringify(tsubuyaki));
+        
+        // 値を取得
+        var objectId = tsubuyaki.get("objectId");
+        var author = tsubuyaki.get("userName");
+        var tsubuyakiText = tsubuyaki.get("tsubuyakiText");
+        var date = new Date(tsubuyaki.get("createDate"));
+        var createDate = date.getFullYear() + "-"
+                        + ((date.getMonth() < 10) ? "0" : "") + date.getMonth() + "-"
+                        + ((date.getDate() < 10) ? "0" : "") + date.getDate() + " "
+                        + ((date.getHours() < 10) ? "0" : "") + date.getHours() + ":"
+                        + ((date.getMinutes() < 10) ? "0" : "") + date.getMinutes() + ":"
+                        + ((date.getSeconds() < 10) ? "0" : "") + date.getSeconds();
+        // リストに追加
+        $("#tsubuyakiList_delete").append("<li class='ui-li ui-li-static ui-btn-up-c'><a data-role='button' id='" + objectId + "'><p class='ui-li-aside ui-li-desc'><strong>" + createDate + "</strong></p><h3 class='ui-li-heading'>" + author + "</h3><p class='ui-li-desc'><strong></strong></p><p class='ui-li-desc'>" + tsubuyakiText + "</p></a></li>");
+        $("#" + objectId).click(function(){
+            var id = $(this).attr('id');
+            onTsubuyKiDelete(id);
+        });
+    }
+    
+    // loading の表示を終了
+    $.mobile.loading('hide');    
+}
+
+function onTsubuyKiDelete(id) {
+    alert(id);
+    
+    // ここにデータの削除を書く
+}
+
+// userDeletePage ページが表示されるたびに実行される処理
+$(document).on('pageshow','#userDeletePage', function(e, d) {
+    // リストの更新
+    alert("2");
+});

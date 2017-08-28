@@ -6,7 +6,6 @@
         <script src="components/loader.js"></script>
         <link rel="stylesheet" href="components/loader.css">
         <link rel="stylesheet" href="css/styles.css">
-        <script src="js/ncmb-latest.min.js"></script>
         <script src="js/app.js"></script>
         <script src="js/cssua.min.js"></script>
         </head>
@@ -72,9 +71,10 @@
             </div>
             <div data-role="footer" data-position="fixed" data-theme="c">
                 <div data-role="navbar">
-                    <ul>
-                        <li><a href="#yesNoDialog_delete" data-icon="delete" data-rel="popup" data-position-to="window" data-role="button" data-inline="false">退会する</a></li>
-                        <li><a href="#tsubuyakiPage" data-icon="plus" data-theme="b">つぶやく</a></li>
+                    <ul id="navBtn">
+                        <li><a id="navBtn1" href="#tsubuyakiDeletePage" data-icon="gear">管理者用</a></li>
+                        <li><a id="navBtn2" href="#yesNoDialog_delete" data-icon="delete" data-rel="popup" data-position-to="window" data-role="button" data-inline="false">退会する</a></li>
+                        <li><a id="navBtn3" href="#tsubuyakiPage" data-icon="plus" data-theme="b">つぶやく</a></li>
                     </ul>
                 </div>
             </div>
@@ -104,6 +104,97 @@
                 <textarea id="tsubuyakiText"></textarea>
                 <a href="#" id="SendTsubuyakiBtn" class="ui-btn-right" data-role="button" data-inline="true" data-theme="b">送信する</a>
             </div>
+        </div>
+        
+        <!-- 管理者ページ（つぶやき管理） -->
+        <div data-role="page" id="tsubuyakiDeletePage">
+            <div data-role="header" data-position="fixed" data-theme="c">
+                <h1>つぶやきアプリ</h1>
+                <a href="#" class="ui-btn-left" data-role="button" data-icon="back" data-inline="true" data-rel="back" data-transition="flow">戻る</a>
+                <a href="#" id="reloadBtn_delete" class="ui-btn-right" data-role="button" data-icon="refresh">更新</a>
+                <div data-role="navbar">
+                    <ul>
+                        <li><a href="#" class="ui-disabled">つぶやき</a></li>
+                        <li><a href="#userDeletePage">ユーザー</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div data-role="content">
+                <!--tsubuyakiList_delete-->
+                <center> 
+                    <ul id="tsubuyakiList_delete" class="ui-listview ui-listview-inset ui-corner-all ui-shadow" data-role="listview" data-inset="true"></ul>   
+                </center>
+                <!--Dialog box confirming logout-->
+                <div data-role="popup" id="yesNoDialog_tsubuyakiDelete" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+                    <div data-role="header" data-theme="c" class="ui-corner-top" style="top: 0 !important;">
+                        <h1>確認</h1>
+                    </div>
+                    <div align="middle" data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+                        <h3 class="ui-title"></h3>
+                        <p>つぶやきを削除します<br>よろしいですか？</p>
+                        <a href="#" id="YesBtn_tsubuyakiDelete" data-role="button" data-inline="true" data-transition="flow" data-theme="b">はい</a>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">いいえ</a>
+                    </div>
+                </div>
+            </div>
+            <!--Dialog box confirming delete-->
+                <div data-role="popup" id="yesNoDialog_delete" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+                    <div data-role="header" data-theme="c" class="ui-corner-top" style="top: 0 !important;">
+                        <h1>確認</h1>
+                    </div>
+                    <div align="middle" data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+                        <h3 class="ui-title"></h3>
+                        <p><strong>退会するとアカウント情報と<br>全てのつぶやきが削除されます</strong><br>退会しますか？</p>
+                        <a href="#" id="YesBtn_delete" data-role="button" data-inline="true" data-transition="flow" data-theme="b">はい</a>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">いいえ</a>
+                    </div>
+                </div>
+        </div>
+        
+        <!-- 管理者ページ（ユーザー管理） -->
+        <div data-role="page" id="userDeletePage">
+            <div data-role="header" data-position="fixed" data-theme="c">
+                <h1>つぶやきアプリ</h1>
+                <a href="#" class="ui-btn-left" data-role="button" data-icon="back" data-inline="true" data-rel="back" data-transition="flow">戻る</a>
+                <a href="#" id="reloadBtn_delete" class="ui-btn-right" data-role="button" data-icon="refresh">更新</a>
+                <div data-role="navbar">
+                    <ul>
+                        <li><a href="#tsubuyakiDeletePage">つぶやき</a></li>
+                        <li><a href="#" class="ui-disabled">ユーザー</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div data-role="content">
+                <!--tsubuyakiList_delete-->
+                <center>
+                    管理者ページ（ユーザー管理）
+                    <ul id="userList_delete" class="ui-listview ui-listview-inset ui-corner-all ui-shadow" data-role="listview" data-inset="true"></ul>   
+                </center>
+                <!--Dialog box confirming logout-->
+                <div data-role="popup" id="yesNoDialog_userDelete" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+                    <div data-role="header" data-theme="c" class="ui-corner-top" style="top: 0 !important;">
+                        <h1>確認</h1>
+                    </div>
+                    <div align="middle" data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+                        <h3 class="ui-title"></h3>
+                        <p>つぶやきを削除します<br>よろしいですか？</p>
+                        <a href="#" id="YesBtn_userDelete" data-role="button" data-inline="true" data-transition="flow" data-theme="b">はい</a>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">いいえ</a>
+                    </div>
+                </div>
+            </div>
+            <!--Dialog box confirming delete-->
+                <div data-role="popup" id="yesNoDialog_userdelete" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+                    <div data-role="header" data-theme="c" class="ui-corner-top" style="top: 0 !important;">
+                        <h1>確認</h1>
+                    </div>
+                    <div align="middle" data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+                        <h3 class="ui-title"></h3>
+                        <p><strong>退会するとアカウント情報と<br>全てのつぶやきが削除されます</strong><br>退会しますか？</p>
+                        <a href="#" id="YesBtn_delete" data-role="button" data-inline="true" data-transition="flow" data-theme="b">はい</a>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">いいえ</a>
+                    </div>
+                </div>
         </div>
         
     </body>
